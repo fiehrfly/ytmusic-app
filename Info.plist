@@ -5,8 +5,8 @@
   <key>CFBundleName</key><string>YouTube Music</string>
   <key>CFBundleDisplayName</key><string>YouTube Music</string>
   <key>CFBundleIdentifier</key><string>com.marvincolcol.youtubemusic</string>
-  <key>CFBundleVersion</key><string>1.0.0</string>
-  <key>CFBundleShortVersionString</key><string>1.0.0</string>
+  <key>CFBundleVersion</key><string>1.1.0</string>
+  <key>CFBundleShortVersionString</key><string>1.1.0</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleSignature</key><string>????</string>
   <key>CFBundleExecutable</key><string>launcher</string>

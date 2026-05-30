@@ -48,7 +48,9 @@ BROWSER_BIN=""
 for b in \
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
-  "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta"; do
+  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+  "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta" \
+  "/Applications/Chromium.app/Contents/MacOS/Chromium"; do
   [ -x "$b" ] && { BROWSER_BIN="$b"; break; }
 done
 
@@ -65,12 +67,27 @@ if [ -n "$BROWSER_BIN" ]; then
      && /usr/bin/lipo -archs "$BROWSER_BIN" 2>/dev/null | grep -q arm64; then
     ARCH_PREFIX="/usr/bin/arch -arm64"
   fi
+  # Flags: --app locks the surface to YouTube Music (no address bar, no tab strip — you
+  # can't type a URL or open an in-window tab). The rest harden + slim it: no extensions
+  # or themes, no sync, no background phone-home/pings, one renderer for the single site,
+  # capped disk cache. Sandbox stays ON; no automation flags (so Google sign-in works).
+  # NOTE: windowed Chrome has no flag to block a deliberate Cmd+N/Cmd+T; that hard block
+  # needs kiosk or an extension. The bundled fallback below DOES enforce it.
   echo "[run] launching directly (no automation)${ARCH_PREFIX:+ via $ARCH_PREFIX}: $BROWSER_BIN" >> "$LOG"
   exec $ARCH_PREFIX "$BROWSER_BIN" \
     --app="https://music.youtube.com/" \
     --user-data-dir="$PROFILE" \
     --no-first-run \
     --no-default-browser-check \
+    --disable-extensions \
+    --disable-sync \
+    --disable-background-networking \
+    --disable-default-apps \
+    --disable-breakpad \
+    --no-pings \
+    --process-per-site \
+    --disk-cache-size=104857600 \
+    --disable-features=Translate \
     >> "$LOG" 2>&1
 fi
 
