@@ -1,0 +1,111 @@
+#!/bin/bash
+# YouTube Music — app launcher.
+# Launches your real Chrome/Edge directly in --app mode (no automation, native arch)
+# so all Google sign-in methods work; falls back to bundled Playwright Chromium only
+# if no system Chrome exists. Survives a Finder double-click (minimal PATH).
+set -u
+
+SELF="${BASH_SOURCE[0]:-$0}"
+MACOS_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+RES_DIR="$(cd "$MACOS_DIR/../Resources" && pwd)"
+APP_DIR="$RES_DIR/app"
+
+LOG_DIR="$HOME/Library/Logs"
+mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/YouTube Music.log"
+# Cap the log so Chrome's appended stderr can't grow it without bound (reset past ~1 MB).
+[ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG" 2>/dev/null || echo 0)" -gt 1048576 ] && : > "$LOG"
+echo "[$(/bin/date '+%Y-%m-%d %H:%M:%S')] launch; APP_DIR=$APP_DIR" >> "$LOG"
+
+dialog() { /usr/bin/osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 with title \"YouTube Music\" with icon caution" >/dev/null 2>&1; }
+notify() { /usr/bin/osascript -e "display notification \"$1\" with title \"YouTube Music\"" >/dev/null 2>&1; }
+
+find_node() {
+  local c
+  for c in "$(command -v node 2>/dev/null)" /opt/homebrew/bin/node /usr/local/bin/node "$HOME/.npm-global/bin/node" /usr/bin/node; do
+    [ -n "$c" ] && [ -x "$c" ] && { echo "$c"; return 0; }
+  done
+  if [ -d "$HOME/.nvm/versions/node" ]; then
+    local n; n="$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | sort -V | tail -1)"
+    [ -n "$n" ] && [ -x "$HOME/.nvm/versions/node/$n/bin/node" ] && { echo "$HOME/.nvm/versions/node/$n/bin/node"; return 0; }
+  fi
+  return 1
+}
+
+# ---------------------------------------------------------------------------
+# Primary path: launch the user's REAL Chrome/Edge *directly* — no automation.
+# Google sign-in (passkeys, "use your phone", security keys, 2-step) needs the OS
+# keychain AND a browser Google doesn't flag as automated. Driving Chrome through
+# Playwright (CDP control + --use-mock-keychain) breaks exactly those flows, which
+# is why non-password login bounced back to the email screen. A direct launch is a
+# normal Chrome window, so every sign-in method works. Same dedicated --app window,
+# same persistent profile, real codecs + Widevine. No Node required on this path.
+# ---------------------------------------------------------------------------
+PROFILE="$HOME/Library/Application Support/YouTube Music/profile"
+mkdir -p "$PROFILE"
+
+BROWSER_BIN=""
+for b in \
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+  "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta"; do
+  [ -x "$b" ] && { BROWSER_BIN="$b"; break; }
+done
+
+if [ -n "$BROWSER_BIN" ]; then
+  # Force the Mac's native architecture. A universal Chrome otherwise inherits the
+  # launching process's arch — and LaunchServices may spawn this script under Rosetta,
+  # dragging Chrome to x86_64 on Apple Silicon ("x64 on Arm … unexpected behavior"),
+  # which is unmaintained and can disturb passkey / Secure Enclave access. We detect
+  # the *hardware* via sysctl (Rosetta-proof; `uname -m` lies when translated) and
+  # re-exec via `arch -arm64`, which lands native even from an x86 parent. Intel Macs
+  # have no arm64 key, so this stays native x86_64 there.
+  ARCH_PREFIX=""
+  if [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ] \
+     && /usr/bin/lipo -archs "$BROWSER_BIN" 2>/dev/null | grep -q arm64; then
+    ARCH_PREFIX="/usr/bin/arch -arm64"
+  fi
+  echo "[run] launching directly (no automation)${ARCH_PREFIX:+ via $ARCH_PREFIX}: $BROWSER_BIN" >> "$LOG"
+  exec $ARCH_PREFIX "$BROWSER_BIN" \
+    --app="https://music.youtube.com/" \
+    --user-data-dir="$PROFILE" \
+    --no-first-run \
+    --no-default-browser-check \
+    >> "$LOG" 2>&1
+fi
+
+# ---------------------------------------------------------------------------
+# Fallback: no system Chrome/Edge on this Mac → Playwright's bundled Chromium.
+# (Plain Chromium lacks the AAC codec + Widevine DRM, so audio may not play, and
+# Google may limit sign-in here — installing Google Chrome is strongly advised.)
+# ---------------------------------------------------------------------------
+echo "[channel] no system Chrome found; using bundled Chromium via Playwright" >> "$LOG"
+
+NODE="$(find_node)" || {
+  dialog "YouTube Music works best with Google Chrome.\n\nNo Chrome was found, and the bundled fallback needs Node.js. Install Google Chrome from https://www.google.com/chrome/ (recommended), then open this app again."
+  exit 1
+}
+NODE_BIN_DIR="$(dirname "$NODE")"
+export PATH="$NODE_BIN_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH:-}"
+echo "[node] $NODE ($("$NODE" -v 2>/dev/null))" >> "$LOG"
+
+# First-run dependency bootstrap (only if node_modules was not shipped / was removed).
+if [ ! -d "$APP_DIR/node_modules/playwright" ]; then
+  notify "Setting up YouTube Music (one-time)…"
+  ( cd "$APP_DIR" && "$NODE_BIN_DIR/npm" install --no-audit --no-fund ) >> "$LOG" 2>&1 \
+    || { dialog "Setup failed while installing dependencies. See log: $LOG"; exit 1; }
+fi
+
+if [ ! -f "$APP_DIR/node_modules/playwright/cli.js" ]; then
+  dialog "Browser engine missing and no Google Chrome found. See log: $LOG"; exit 1
+fi
+notify "Preparing browser engine (one-time download)…"
+( cd "$APP_DIR" && "$NODE" "$APP_DIR/node_modules/playwright/cli.js" install chromium ) >> "$LOG" 2>&1 \
+  || { dialog "Could not install the browser engine. See log: $LOG"; exit 1; }
+
+echo "[run] node ytmusic.js (fallback)" >> "$LOG"
+( cd "$APP_DIR" && "$NODE" ytmusic.js ) >> "$LOG" 2>&1
+code=$?
+echo "[exit] $code" >> "$LOG"
+[ "$code" -ne 0 ] && dialog "YouTube Music hit an error (code $code). Log: $LOG"
+exit "$code"
