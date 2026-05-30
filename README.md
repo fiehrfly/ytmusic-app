@@ -13,6 +13,17 @@ separate app — with the YouTube Music icon — in the Dock and the ⌘-Tab swi
 **This is an unofficial YouTube Music Executable Chromium-based App** — a thin wrapper
 around Chromium, not an official Google product.
 
+## ⚠️ Disclaimer
+
+**Unofficial. Not affiliated with, endorsed by, or sponsored by Google or YouTube.** "Google",
+"YouTube", and "YouTube Music" — and the YouTube Music name and logo — are trademarks of Google
+LLC, used here **for identification only** to indicate the service this app opens; the author
+claims no ownership of them. This is a free, **non-commercial** personal project, provided
+**"as is"** with no warranty. It contains **no Google code** (the Chromium engine is downloaded at
+runtime, never redistributed here) and does not host or redistribute any YouTube content.
+
+**Full details → [DISCLAIMER.md](DISCLAIMER.md) · [Third-party notices](THIRD-PARTY-NOTICES.md) · [License](LICENSE).**
+
 ## Features (what this app does)
 
 - **Its own app identity** — runs under its own bundle identity (`com.marvincolcol.youtubemusic`),
@@ -105,6 +116,16 @@ Share `dist/YouTube-Music-macOS.zip`. On the new Mac:
 rm -rf "/Applications/YouTube Music.app"
 rm -rf "$HOME/Library/Application Support/YouTube Music"   # removes the engine + your login
 ```
+
+## License & trademarks
+
+- This project's **own source code** (`launcher`, `build.sh`, `package.sh`, docs) is released
+  under the **[MIT License](LICENSE)**.
+- The **"YouTube Music" name and logo** (`icon.svg`, `app.icns`) are **trademarks of Google LLC** —
+  not covered by the MIT license and not claimed by the author; included only as the app's icon for
+  identification. See **[DISCLAIMER.md](DISCLAIMER.md)**.
+- The **browser engine** (Chromium / Google Chrome for Testing) is third-party software, downloaded
+  at runtime and never redistributed here. See **[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**.
 
 ---
 
