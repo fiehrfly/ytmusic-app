@@ -1,128 +1,126 @@
 #!/bin/bash
-# YouTube Music — app launcher.
-# Launches your real Chrome/Edge directly in --app mode (no automation, native arch)
-# so all Google sign-in methods work; falls back to bundled Playwright Chromium only
-# if no system Chrome exists. Survives a Finder double-click (minimal PATH).
+# YouTube Music — an UNOFFICIAL, Chromium-based desktop app.
+#
+# Runs its OWN Chromium engine, branded "YouTube Music" with its own identity + icon, so it
+# appears as its own app in Cmd+Tab / the Dock — never grouped with Google Chrome — and works
+# whether or not the user has Chrome installed. The engine is materialized once into
+# Application Support (reused from a local Chromium if present, else downloaded per-arch),
+# kept current by a daily background update check, and launched single-instance + hard-locked.
 set -u
 
 SELF="${BASH_SOURCE[0]:-$0}"
 MACOS_DIR="$(cd "$(dirname "$SELF")" && pwd)"
 RES_DIR="$(cd "$MACOS_DIR/../Resources" && pwd)"
-APP_DIR="$RES_DIR/app"
 
-LOG_DIR="$HOME/Library/Logs"
-mkdir -p "$LOG_DIR"
-LOG="$LOG_DIR/YouTube Music.log"
-# Cap the log so Chrome's appended stderr can't grow it without bound (reset past ~1 MB).
+SUPPORT="$HOME/Library/Application Support/YouTube Music"
+PROFILE="$SUPPORT/profile"
+ENGINE_DIR="$SUPPORT/Engine"
+ENGINE_APP="$ENGINE_DIR/YouTube Music.app"
+PENDING_APP="$ENGINE_DIR/YouTube Music.pending.app"
+ENGINE_BIN="$ENGINE_APP/Contents/MacOS/Google Chrome for Testing"
+ENGINE_ID="com.marvincolcol.youtubemusic.engine"
+STAMP="$ENGINE_DIR/.last_update_check"
+CFT_PINNED="148.0.7778.96"          # known-good fallback version
+TARGET="https://music.youtube.com/"
+mkdir -p "$PROFILE" "$ENGINE_DIR"
+
+LOG_DIR="$HOME/Library/Logs"; mkdir -p "$LOG_DIR"; LOG="$LOG_DIR/YouTube Music.log"
 [ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG" 2>/dev/null || echo 0)" -gt 1048576 ] && : > "$LOG"
-echo "[$(/bin/date '+%Y-%m-%d %H:%M:%S')] launch; APP_DIR=$APP_DIR" >> "$LOG"
+echo "[$(/bin/date '+%Y-%m-%d %H:%M:%S')] launch" >> "$LOG"
+dialog(){ /usr/bin/osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 with title \"YouTube Music\" with icon caution" >/dev/null 2>&1; }
+notify(){ /usr/bin/osascript -e "display notification \"$1\" with title \"YouTube Music\"" >/dev/null 2>&1; }
 
-dialog() { /usr/bin/osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 with title \"YouTube Music\" with icon caution" >/dev/null 2>&1; }
-notify() { /usr/bin/osascript -e "display notification \"$1\" with title \"YouTube Music\"" >/dev/null 2>&1; }
-
-find_node() {
-  local c
-  for c in "$(command -v node 2>/dev/null)" /opt/homebrew/bin/node /usr/local/bin/node "$HOME/.npm-global/bin/node" /usr/bin/node; do
-    [ -n "$c" ] && [ -x "$c" ] && { echo "$c"; return 0; }
-  done
-  if [ -d "$HOME/.nvm/versions/node" ]; then
-    local n; n="$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | sort -V | tail -1)"
-    [ -n "$n" ] && [ -x "$HOME/.nvm/versions/node/$n/bin/node" ] && { echo "$HOME/.nvm/versions/node/$n/bin/node"; return 0; }
-  fi
-  return 1
-}
-
-# ---------------------------------------------------------------------------
-# Primary path: launch the user's REAL Chrome/Edge *directly* — no automation.
-# Google sign-in (passkeys, "use your phone", security keys, 2-step) needs the OS
-# keychain AND a browser Google doesn't flag as automated. Driving Chrome through
-# Playwright (CDP control + --use-mock-keychain) breaks exactly those flows, which
-# is why non-password login bounced back to the email screen. A direct launch is a
-# normal Chrome window, so every sign-in method works. Same dedicated --app window,
-# same persistent profile, real codecs + Widevine. No Node required on this path.
-# ---------------------------------------------------------------------------
-PROFILE="$HOME/Library/Application Support/YouTube Music/profile"
-mkdir -p "$PROFILE"
-
-BROWSER_BIN=""
-for b in \
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
-  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
-  "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta" \
-  "/Applications/Chromium.app/Contents/MacOS/Chromium"; do
-  [ -x "$b" ] && { BROWSER_BIN="$b"; break; }
-done
-
-if [ -n "$BROWSER_BIN" ]; then
-  # Force the Mac's native architecture. A universal Chrome otherwise inherits the
-  # launching process's arch — and LaunchServices may spawn this script under Rosetta,
-  # dragging Chrome to x86_64 on Apple Silicon ("x64 on Arm … unexpected behavior"),
-  # which is unmaintained and can disturb passkey / Secure Enclave access. We detect
-  # the *hardware* via sysctl (Rosetta-proof; `uname -m` lies when translated) and
-  # re-exec via `arch -arm64`, which lands native even from an x86 parent. Intel Macs
-  # have no arm64 key, so this stays native x86_64 there.
-  ARCH_PREFIX=""
-  if [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ] \
-     && /usr/bin/lipo -archs "$BROWSER_BIN" 2>/dev/null | grep -q arm64; then
-    ARCH_PREFIX="/usr/bin/arch -arm64"
-  fi
-  # Flags: --app locks the surface to YouTube Music (no address bar, no tab strip — you
-  # can't type a URL or open an in-window tab). The rest harden + slim it: no extensions
-  # or themes, no sync, no background phone-home/pings, one renderer for the single site,
-  # capped disk cache. Sandbox stays ON; no automation flags (so Google sign-in works).
-  # NOTE: windowed Chrome has no flag to block a deliberate Cmd+N/Cmd+T; that hard block
-  # needs kiosk or an extension. The bundled fallback below DOES enforce it.
-  echo "[run] launching directly (no automation)${ARCH_PREFIX:+ via $ARCH_PREFIX}: $BROWSER_BIN" >> "$LOG"
-  exec $ARCH_PREFIX "$BROWSER_BIN" \
-    --app="https://music.youtube.com/" \
-    --user-data-dir="$PROFILE" \
-    --no-first-run \
-    --no-default-browser-check \
-    --disable-extensions \
-    --disable-sync \
-    --disable-background-networking \
-    --disable-default-apps \
-    --disable-breakpad \
-    --no-pings \
-    --process-per-site \
-    --disk-cache-size=104857600 \
-    --disable-features=Translate \
-    >> "$LOG" 2>&1
+# (5) Single instance: if it's already running, just bring it to front — no new window.
+if /usr/bin/pgrep -f "user-data-dir=$PROFILE" >/dev/null 2>&1; then
+  echo "[reopen] already running -> activating existing window" >> "$LOG"
+  /usr/bin/osascript -e "tell application id \"$ENGINE_ID\" to activate" >/dev/null 2>&1
+  exit 0
 fi
 
-# ---------------------------------------------------------------------------
-# Fallback: no system Chrome/Edge on this Mac → Playwright's bundled Chromium.
-# (Plain Chromium lacks the AAC codec + Widevine DRM, so audio may not play, and
-# Google may limit sign-in here — installing Google Chrome is strongly advised.)
-# ---------------------------------------------------------------------------
-echo "[channel] no system Chrome found; using bundled Chromium via Playwright" >> "$LOG"
+# (4) Apply a pending engine update staged by a previous background check.
+if [ -d "$PENDING_APP" ] && [ -x "$PENDING_APP/Contents/MacOS/Google Chrome for Testing" ]; then
+  echo "[update] applying staged engine update" >> "$LOG"
+  rm -rf "$ENGINE_APP"; mv "$PENDING_APP" "$ENGINE_APP"
+fi
 
-NODE="$(find_node)" || {
-  dialog "YouTube Music works best with Google Chrome.\n\nNo Chrome was found, and the bundled fallback needs Node.js. Install Google Chrome from https://www.google.com/chrome/ (recommended), then open this app again."
-  exit 1
+if [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ]; then PLAT="mac-arm64"; else PLAT="mac-x64"; fi
+
+# Build a branded engine at $1 (.app). $2 = version to download; $3 = "reuse" to allow
+# cloning a local Chromium instead of downloading. Returns 0 on success.
+materialize() {
+  local DEST="$1" VER="$2" REUSE="${3:-}" TMP SRC
+  TMP="$(/usr/bin/mktemp -d /tmp/ytm.XXXXXX)" || return 1
+  SRC=""
+  if [ "$REUSE" = "reuse" ]; then
+    SRC="$(/bin/ls -d "$HOME/Library/Caches/ms-playwright"/chromium-*/chrome-mac*/"Google Chrome for Testing.app" 2>/dev/null | /usr/bin/head -1)"
+  fi
+  if [ -n "$SRC" ] && [ -d "$SRC" ]; then
+    echo "[engine] cloning local Chromium: $SRC" >> "$LOG"
+    cp -c -R "$SRC" "$TMP/E.app" 2>/dev/null || cp -R "$SRC" "$TMP/E.app"   # (3) APFS clone (slim); fallback to copy
+  else
+    local URL="https://storage.googleapis.com/chrome-for-testing-public/$VER/$PLAT/chrome-$PLAT.zip"
+    echo "[engine] downloading $URL" >> "$LOG"
+    /usr/bin/curl -fsSL "$URL" -o "$TMP/cft.zip" || { rm -rf "$TMP"; return 1; }
+    /usr/bin/unzip -q "$TMP/cft.zip" -d "$TMP" || { rm -rf "$TMP"; return 1; }
+    mv "$TMP/chrome-$PLAT/Google Chrome for Testing.app" "$TMP/E.app" || { rm -rf "$TMP"; return 1; }
+  fi
+  local PB=/usr/libexec/PlistBuddy PL="$TMP/E.app/Contents/Info.plist"
+  $PB -c "Set :CFBundleIdentifier $ENGINE_ID" "$PL" 2>/dev/null
+  $PB -c "Set :CFBundleName YouTube Music" "$PL" 2>/dev/null
+  $PB -c "Set :CFBundleDisplayName YouTube Music" "$PL" 2>/dev/null
+  [ -f "$RES_DIR/app.icns" ] && cp "$RES_DIR/app.icns" "$TMP/E.app/Contents/Resources/ytmusic.icns" \
+    && $PB -c "Set :CFBundleIconFile ytmusic" "$PL" 2>/dev/null
+  /usr/bin/codesign --force --deep --sign - "$TMP/E.app" >/dev/null 2>&1
+  rm -rf "$DEST"; mv "$TMP/E.app" "$DEST"; rm -rf "$TMP"
+  [ -x "$DEST/Contents/MacOS/Google Chrome for Testing" ]
 }
-NODE_BIN_DIR="$(dirname "$NODE")"
-export PATH="$NODE_BIN_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH:-}"
-echo "[node] $NODE ($("$NODE" -v 2>/dev/null))" >> "$LOG"
 
-# First-run dependency bootstrap (only if node_modules was not shipped / was removed).
-if [ ! -d "$APP_DIR/node_modules/playwright" ]; then
+# First run: materialize the engine (reuse a local Chromium if present, else download).
+if [ ! -x "$ENGINE_BIN" ]; then
+  echo "[setup] first-run engine setup ($PLAT)" >> "$LOG"
   notify "Setting up YouTube Music (one-time)…"
-  ( cd "$APP_DIR" && "$NODE_BIN_DIR/npm" install --no-audit --no-fund ) >> "$LOG" 2>&1 \
-    || { dialog "Setup failed while installing dependencies. See log: $LOG"; exit 1; }
+  if ! materialize "$ENGINE_APP" "$CFT_PINNED" reuse; then
+    dialog "Couldn't set up the YouTube Music engine. Check your internet connection and reopen.\n\nLog: $LOG"
+    exit 1
+  fi
+  echo "[setup] engine ready" >> "$LOG"
+  : > "$STAMP"   # defer the daily update check ~24h so first run doesn't immediately re-download
 fi
 
-if [ ! -f "$APP_DIR/node_modules/playwright/cli.js" ]; then
-  dialog "Browser engine missing and no Google Chrome found. See log: $LOG"; exit 1
+# (4) Background, at most once a day: if a newer stable Chromium exists, stage it for next launch.
+NOW="$(/bin/date +%s)"; LAST="$(/usr/bin/stat -f%m "$STAMP" 2>/dev/null || echo 0)"
+if [ "$((NOW - LAST))" -gt 86400 ]; then
+  : > "$STAMP"
+  (
+    LATEST="$(/usr/bin/curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE 2>/dev/null)"
+    INSTALLED="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ENGINE_APP/Contents/Info.plist" 2>/dev/null)"
+    if [ -n "$LATEST" ] && [ -n "$INSTALLED" ] && [ "$LATEST" != "$INSTALLED" ] && [ ! -d "$PENDING_APP" ]; then
+      newest="$(printf '%s\n%s\n' "$LATEST" "$INSTALLED" | /usr/bin/sort -V | /usr/bin/tail -1)"
+      if [ "$newest" = "$LATEST" ]; then
+        echo "[update] newer engine $LATEST (have $INSTALLED) -> staging" >> "$LOG"
+        materialize "$PENDING_APP" "$LATEST" || rm -rf "$PENDING_APP"
+      fi
+    fi
+  ) >/dev/null 2>&1 &
 fi
-notify "Preparing browser engine (one-time download)…"
-( cd "$APP_DIR" && "$NODE" "$APP_DIR/node_modules/playwright/cli.js" install chromium ) >> "$LOG" 2>&1 \
-  || { dialog "Could not install the browser engine. See log: $LOG"; exit 1; }
 
-echo "[run] node ytmusic.js (fallback)" >> "$LOG"
-( cd "$APP_DIR" && "$NODE" ytmusic.js ) >> "$LOG" 2>&1
-code=$?
-echo "[exit] $code" >> "$LOG"
-[ "$code" -ne 0 ] && dialog "YouTube Music hit an error (code $code). Log: $LOG"
-exit "$code"
+# Launch the branded engine via LaunchServices (NOT exec), so this launcher exits and a later
+# relaunch re-runs it → the single-instance guard above catches it (no new window) instead of a
+# reopen hitting the engine directly. Shared flags: media keys (HardwareMediaKeyHandling) and the
+# lean/hardened set (no extensions/themes/sync/pings/background net; one renderer; capped cache;
+# sandbox ON).
+#
+# Default = windowed app (--app): dedicated window, no address bar, no tab strip.
+# HARD-LOCK = kiosk: run `touch "$SUPPORT/.kiosk"` to fully block Cmd+N / Cmd+T. NOTE: kiosk is
+# FULLSCREEN (no movable/floating window), trading away easy windowed switching. `rm` the file to revert.
+COMMON=( --user-data-dir="$PROFILE" --no-first-run --no-default-browser-check
+  --disable-extensions --disable-sync --disable-background-networking --disable-default-apps
+  --disable-breakpad --no-pings --process-per-site --disk-cache-size=104857600
+  --disable-features=Translate --disable-infobars --enable-features=HardwareMediaKeyHandling )
+if [ -f "$SUPPORT/.kiosk" ]; then
+  echo "[run] open -n engine (kiosk)" >> "$LOG"
+  exec /usr/bin/open -n "$ENGINE_APP" --args --kiosk "${COMMON[@]}" "$TARGET"
+else
+  echo "[run] open -n engine (windowed)" >> "$LOG"
+  exec /usr/bin/open -n "$ENGINE_APP" --args --app="$TARGET" "${COMMON[@]}"
+fi
