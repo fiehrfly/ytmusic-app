@@ -85,24 +85,168 @@ Application Support. Every launch after that just opens that engine, locked to
 
 **Remember: this is an unofficial YouTube Music Executable Chromium-based App.**
 
-## Install / build / package
+## Install — the easy, step-by-step way
+
+> Don't worry if you've never used a "Terminal" or GitHub before. There are **two ways** to
+> install, and the first one is the simplest thing on a Mac: **download one file, then drag
+> it onto your Applications folder.** No typing, no Terminal. 🙂
+>
+> - **Option A — Download & drag (recommended for everyone).** Just download a file and
+>   drag. Pick this one.
+> - **Option B — Build it yourself** (only if you'd rather get the source code from GitHub).
+
+### Before you start — what you need (prerequisites)
+
+- ✅ **A Mac** (an Apple computer) running **macOS**. It works on both kinds of Mac —
+  older Intel Macs and newer Apple Silicon (M1 / M2 / M3 / M4). You don't need to know
+  which one you have.
+- ✅ **An internet connection** (Wi-Fi or cable). You need it the **first time** you open
+  the app, and to download the files.
+- ✅ **About 5 minutes.**
+- ✅ That's all. You do **not** need to be a coder, and you do **not** need to install
+  anything extra — everything the app needs is already built into your Mac.
+
+---
+
+## Option A — Download & drag (recommended) 🎯
+
+This is the easy way. You download **one file**, open it, and drag the app into your
+Applications folder — exactly like installing most Mac apps.
+
+1. Go to the **Releases** page:
+   👉 **https://github.com/fiehrfly/ytmusic-app/releases/latest**
+2. Under **Assets**, click **`YouTube-Music-macOS.dmg`** to download it. It saves to your
+   **Downloads** folder.
+3. In **Downloads**, **double-click `YouTube-Music-macOS.dmg`**. A window opens showing the
+   **YouTube Music** icon and a shortcut to your **Applications** folder, with an arrow
+   between them.
+4. **Drag the YouTube Music icon onto the Applications folder** (follow the arrow). That
+   copies the app onto your Mac. ✅
+5. You can now close that window and **eject** the disk image: in Finder's sidebar, click
+   the little ⏏ next to **"YouTube Music."**
+
+**Now open it the first time:**
+
+6. Open your **Applications** folder (in Finder's top menu: **`Go` → `Applications`**), find
+   **`YouTube Music`**, **right-click it** (or hold **`Control`** and click), then choose
+   **`Open`**.
+7. A box may warn that the app is from an "unidentified developer." That's normal for a free
+   app that isn't from the App Store. Click **`Open`**. **You only do this the very first time.**
+8. The first launch takes about **30–60 seconds** while it sets itself up (it needs the
+   internet this once). After that, it opens instantly. **Sign in once** and it remembers you.
+
+**That's it — you're done! 🎵** Keep it in your Dock and click it like any other app.
+
+> **Why the one-time right-click?** This is a free app that isn't signed with a paid Apple
+> developer certificate, so macOS double-checks with you the first time. Right-click → Open
+> tells macOS you trust it. It only ever happens once.
+
+---
+
+## Option B — Build it yourself from the source code
+
+Prefer to get the actual source code from GitHub and make the app on your own machine? This
+takes a few more steps but still requires **no coding** — you copy and paste **two short
+lines**.
+
+### Step 1 — Get the files from GitHub
+
+The app's files live on a free website called **GitHub**, here:
+👉 **https://github.com/fiehrfly/ytmusic-app**
+
+1. Open that link in your web browser (Safari or Chrome — either is fine).
+2. Look for the big **green button** near the top that says **`< > Code`**. **Click it.**
+3. A small menu drops down. At the **bottom** of that menu, click **Download ZIP**.
+4. A file named **`ytmusic-app-main.zip`** will save to your **Downloads** folder.
+5. Open your **Downloads** folder and **double-click that ZIP file**. It will turn into a
+   **folder** named **`ytmusic-app-main`**. (Double-clicking a ZIP just unpacks it.)
+
+> 💡 **Tip:** Keep that `ytmusic-app-main` folder somewhere easy, like your **Desktop**.
+> You can drag it there now.
+
+### Step 2 — Build the app (copy & paste two lines)
+
+"Building" just means turning the files into a real clickable app. Your Mac does the work —
+you only press a couple of keys.
+
+1. **Open the Terminal app.** Press the **`Command (⌘)`** key and the **`Spacebar`** at the
+   same time. A search box appears. Type the word **`Terminal`** and press **`Return`**
+   (the Enter key). A plain window with text opens — that's Terminal. It's safe.
+2. In the Terminal window, type **`cd`** and then **one space**. (`cd` means "go to a
+   folder.") **Do not press Return yet.**
+3. Now **drag the `ytmusic-app-main` folder** from your Desktop **into the Terminal
+   window** and let go. The folder's location gets typed in for you automatically. ✨
+   Now press **`Return`**.
+4. Type (or copy-paste) this exact line and press **`Return`**:
+
+   ```
+   bash build.sh
+   ```
+
+   Wait a few seconds. When you see the word **`Done:`**, the app has been built. 🎉
+
+### Step 3 — Put the app with your other apps
+
+1. Go back to your **`ytmusic-app-main` folder** (on the Desktop). You'll now see a new
+   item there called **`YouTube Music`** with the red-and-white YouTube Music icon. **That's
+   your app.**
+2. Open your **Applications** folder: in any Finder window, click the **`Go`** menu at the
+   top of the screen, then click **`Applications`**.
+3. **Drag** the **`YouTube Music`** app into the **Applications** folder. (This is the same
+   as "installing" it.)
+
+### Step 4 — Open it for the first time
+
+1. In **Applications**, find **`YouTube Music`**. **Don't double-click yet** — instead,
+   **right-click** it (or hold the **`Control`** key and click), then choose **`Open`**.
+2. A box may pop up warning that the app is from an "unidentified developer." This is
+   normal for free apps that don't come from the App Store. Click **`Open`** in that box.
+   **You only have to do this the very first time.**
+3. The **first launch takes about 30–60 seconds** while it sets itself up (this is when it
+   needs the internet). After that, it opens instantly every time.
+4. When YouTube Music appears, **sign in once**. The app remembers you, so you won't have
+   to sign in again.
+
+**Done! 🎵** From now on, just click **YouTube Music** in your Applications (or keep it in
+your Dock) like any other app.
+
+---
+
+### Give the app to a friend (optional)
+
+Want to share the finished app so a friend **doesn't** have to do any of the steps above?
+Make the same drag-to-install disk image (.dmg) that the Releases page uses:
+
+1. In Terminal (still in the same folder from Step 2), run:
+
+   ```
+   bash make-dmg.sh
+   ```
+
+2. This creates **one file**: **`dist/YouTube-Music-macOS.dmg`**.
+3. Send that file to your friend (AirDrop, email, or a USB stick).
+4. On **their** Mac, they only need to: **double-click the .dmg → drag `YouTube Music` onto
+   Applications → right-click → Open → Open.** No GitHub and no Terminal needed for them. The
+   first launch sets up the engine (it needs internet once).
+
+> Prefer a plain zip instead of a disk image? `bash package.sh` makes
+> `dist/YouTube-Music-macOS.zip` — they unzip it, then drag the app into Applications.
+
+---
+
+### Quick version (for people comfortable with the Terminal)
 
 ```
-cd ~/Tools/ytmusic-app
-bash build.sh        # assembles the tiny "YouTube Music.app" launcher bundle
-bash package.sh      # builds + zips dist/YouTube-Music-macOS.zip for sharing
+git clone https://github.com/fiehrfly/ytmusic-app.git
+cd ytmusic-app
+bash build.sh                              # builds "YouTube Music.app"
 cp -R "YouTube Music.app" /Applications/   # install
+# bash make-dmg.sh                         # optional: drag-to-Applications .dmg (for Releases)
+# bash package.sh                          # optional: plain .zip for sharing
 ```
 
-First launch sets up the engine (a one-time step; needs internet only if no local
+First launch sets up the branded Chromium engine once (needs internet only if no local
 Chromium is found). After that it opens instantly.
-
-## Sending it to another Mac
-
-Share `dist/YouTube-Music-macOS.zip`. On the new Mac:
-1. First open: right-click the app → **Open** → **Open** (it's ad-hoc signed, so Gatekeeper
-   asks once).
-2. The first launch sets up the engine (downloads a Chromium build if the Mac has none).
 
 ## Troubleshooting
 

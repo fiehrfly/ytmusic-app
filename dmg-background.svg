@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="400" viewBox="0 0 660 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f4f4f5"/>
+    </linearGradient>
+  </defs>
+  <rect width="660" height="400" fill="url(#bg)"/>
+
+  <!-- Heading -->
+  <text x="330" y="64" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="30" font-weight="700" fill="#18181b">Install YouTube Music</text>
+  <text x="330" y="98" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="17" font-weight="400" fill="#52525b">Drag the icon onto the Applications folder</text>
+
+  <!-- Arrow between the two icon slots (icons sit at y~215, this points right) -->
+  <g stroke="#e11d2a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="262" y1="205" x2="398" y2="205"/>
+    <polyline points="378,188 402,205 378,222"/>
+  </g>
+
+  <!-- Step labels under each slot -->
+  <text x="165" y="320" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="14" font-weight="600" fill="#71717a">1 · The app</text>
+  <text x="495" y="320" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="14" font-weight="600" fill="#71717a">2 · Drop it here</text>
+
+  <!-- Footer hint -->
+  <text x="330" y="372" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="13" font-weight="400" fill="#a1a1aa">First time you open it: right-click the app &#8594; Open &#8594; Open</text>
+</svg>

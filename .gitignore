@@ -17,5 +17,12 @@ node_modules/
 # Icon build scratch
 .iconset/
 
+# DMG build scratch (the .dmg lands in dist/, already ignored above)
+.dmg-stage/
+.dmg-rw.dmg
+# Intermediate background renders — the committed dmg-background.tiff/.svg are the sources
+dmg-background.png
+dmg-background@2x.png
+
 # macOS cruft
 .DS_Store
