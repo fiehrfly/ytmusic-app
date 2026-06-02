@@ -125,21 +125,43 @@ Applications folder — exactly like installing most Mac apps.
 5. You can now close that window and **eject** the disk image: in Finder's sidebar, click
    the little ⏏ next to **"YouTube Music."**
 
-**Now open it the first time:**
+**Now open it the first time — see the next section. ⤵️**
 
-6. Open your **Applications** folder (in Finder's top menu: **`Go` → `Applications`**), find
-   **`YouTube Music`**, **right-click it** (or hold **`Control`** and click), then choose
-   **`Open`**.
-7. A box may warn that the app is from an "unidentified developer." That's normal for a free
-   app that isn't from the App Store. Click **`Open`**. **You only do this the very first time.**
-8. The first launch takes about **30–60 seconds** while it sets itself up (it needs the
-   internet this once). After that, it opens instantly. **Sign in once** and it remembers you.
+### Opening it the first time (you only do this once)
+
+Because this is a **free app that doesn't come from the Mac App Store**, macOS asks you to
+confirm it's okay the very first time you open it. **This is completely normal — nothing is
+wrong with the app.** You only do this once; after that it opens like any normal app.
+
+1. Open your **Applications** folder (in Finder's top menu, click **`Go` → `Applications`**).
+2. **Double-click `YouTube Music`.**
+3. A message pops up saying macOS "could not verify" the app. **Click `Done`** (or `Cancel`).
+   Don't worry — this is expected.
+4. Open **System Settings** (the gray ⚙️ gear icon, usually in your Dock or via the  menu).
+5. In the sidebar, click **`Privacy & Security`**. Scroll down to the **Security** area.
+6. You'll see a line that says **`"YouTube Music" was blocked…`** with a button next to it
+   called **`Open Anyway`**. **Click `Open Anyway`.**
+7. Confirm with your **fingerprint (Touch ID)** or your **Mac password** if it asks. One more
+   small box appears — click **`Open Anyway`** in it too.
+8. 🎉 YouTube Music opens. The **first open takes about 30–60 seconds** while it sets itself
+   up (it needs the internet this once). After that it opens **instantly**, and you'll
+   **never see these messages again**. **Sign in once** and it remembers you.
 
 **That's it — you're done! 🎵** Keep it in your Dock and click it like any other app.
 
-> **Why the one-time right-click?** This is a free app that isn't signed with a paid Apple
-> developer certificate, so macOS double-checks with you the first time. Right-click → Open
-> tells macOS you trust it. It only ever happens once.
+> **On an older Mac?** If you're on **macOS 14 (Sonoma) or earlier**, the steps are shorter:
+> **right-click** (or hold `Control` and click) **`YouTube Music`** → **`Open`** → **`Open`**.
+>
+> **Want the fast path?** If you're comfortable copy-pasting one line, open the **Terminal**
+> app and paste this, then press Return — the app will just open, no clicking through
+> settings:
+> ```
+> xattr -dr com.apple.quarantine "/Applications/YouTube Music.app"
+> ```
+>
+> **Why does macOS do this?** Apps verified with a paid Apple developer certificate skip this
+> screen. This is a free, non-commercial project without one, so macOS double-checks with
+> *you* the first time. Clicking **Open Anyway** tells macOS you trust it — once.
 
 ---
 
@@ -197,15 +219,16 @@ you only press a couple of keys.
 
 ### Step 4 — Open it for the first time
 
-1. In **Applications**, find **`YouTube Music`**. **Don't double-click yet** — instead,
-   **right-click** it (or hold the **`Control`** key and click), then choose **`Open`**.
-2. A box may pop up warning that the app is from an "unidentified developer." This is
-   normal for free apps that don't come from the App Store. Click **`Open`** in that box.
-   **You only have to do this the very first time.**
-3. The **first launch takes about 30–60 seconds** while it sets itself up (this is when it
+1. In **Applications**, **double-click `YouTube Music`**. Because *you* built it on your own
+   Mac (instead of downloading it), macOS usually opens it right away — **no "Open Anyway"
+   step needed.** 🎉
+2. The **first launch takes about 30–60 seconds** while it sets itself up (this is when it
    needs the internet). After that, it opens instantly every time.
-4. When YouTube Music appears, **sign in once**. The app remembers you, so you won't have
+3. When YouTube Music appears, **sign in once**. The app remembers you, so you won't have
    to sign in again.
+
+> If macOS *does* happen to block it, just follow the same one-time **"Open it the first
+> time"** steps from **Option A** above (System Settings → Privacy & Security → Open Anyway).
 
 **Done! 🎵** From now on, just click **YouTube Music** in your Applications (or keep it in
 your Dock) like any other app.
@@ -226,8 +249,9 @@ Make the same drag-to-install disk image (.dmg) that the Releases page uses:
 2. This creates **one file**: **`dist/YouTube-Music-macOS.dmg`**.
 3. Send that file to your friend (AirDrop, email, or a USB stick).
 4. On **their** Mac, they only need to: **double-click the .dmg → drag `YouTube Music` onto
-   Applications → right-click → Open → Open.** No GitHub and no Terminal needed for them. The
-   first launch sets up the engine (it needs internet once).
+   Applications → open it the first time** (the one-time *System Settings → Privacy & Security
+   → Open Anyway* step from Option A). No GitHub and no Terminal needed for them. The first
+   launch sets up the engine (it needs internet once).
 
 > Prefer a plain zip instead of a disk image? `bash package.sh` makes
 > `dist/YouTube-Music-macOS.zip` — they unzip it, then drag the app into Applications.
@@ -250,6 +274,13 @@ Chromium is found). After that it opens instantly.
 
 ## Troubleshooting
 
+- **macOS won't let me open it / "could not verify" / "blocked"** → expected for a free app.
+  Do the one-time **Opening it the first time** steps above: **System Settings → Privacy &
+  Security → Open Anyway**. (Or, in Terminal:
+  `xattr -dr com.apple.quarantine "/Applications/YouTube Music.app"`.)
+- **"YouTube Music is damaged and can't be opened"** → this is the same download flag, just a
+  scarier message. The Terminal line above clears it:
+  `xattr -dr com.apple.quarantine "/Applications/YouTube Music.app"`, then open it normally.
 - Logs: `~/Library/Logs/YouTube Music.log`
 - "Couldn't download the engine" → check your internet connection and reopen.
 - Google asks to verify it's you → sign in once; it sticks in the private profile.

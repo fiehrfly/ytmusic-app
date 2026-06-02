@@ -30,7 +30,10 @@
         font-size="14" font-weight="600" fill="#71717a">2 · Drop it here</text>
 
   <!-- Footer hint -->
-  <text x="330" y="372" text-anchor="middle"
+  <text x="330" y="366" text-anchor="middle"
         font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
-        font-size="13" font-weight="400" fill="#a1a1aa">First time you open it: right-click the app &#8594; Open &#8594; Open</text>
+        font-size="13" font-weight="600" fill="#71717a">First time blocked by macOS? That's normal for a free app.</text>
+  <text x="330" y="386" text-anchor="middle"
+        font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="13" font-weight="400" fill="#a1a1aa">Open System Settings &#8250; Privacy &amp; Security &#8250; &#8220;Open Anyway&#8221;</text>
 </svg>

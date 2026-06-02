@@ -74,4 +74,5 @@ echo "Built: $DMG"
 /bin/ls -lh "$DMG" | /usr/bin/awk '{print "  size:", $5}'
 echo ""
 echo "Share this one file. The user: double-click the .dmg -> drag 'YouTube Music' onto"
-echo "Applications -> first open: right-click the app -> Open -> Open (asked once)."
+echo "Applications -> first open (asked once): System Settings -> Privacy & Security ->"
+echo "'Open Anyway'. (macOS 14 and earlier: right-click the app -> Open -> Open.)"
