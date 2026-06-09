@@ -87,13 +87,16 @@ Application Support. Every launch after that just opens that engine, locked to
 
 ## Install — the easy, step-by-step way
 
-> Don't worry if you've never used a "Terminal" or GitHub before. There are **two ways** to
-> install, and the first one is the simplest thing on a Mac: **download one file, then drag
-> it onto your Applications folder.** No typing, no Terminal. 🙂
+> Don't worry if you've never used a "Terminal" or GitHub before. There are a few ways to
+> install — pick whichever feels comfortable:
 >
-> - **Option A — Download & drag (recommended for everyone).** Just download a file and
->   drag. Pick this one.
-> - **Option B — Build it yourself** (only if you'd rather get the source code from GitHub).
+> - **⚡ One-line install (fastest — and skips the macOS warning *entirely*).** If you're
+>   okay pasting a single line into the Terminal, this downloads and installs the app with
+>   **no "could not verify" pop-up at all.** Shown in the next section.
+> - **Option A — Download & drag (no Terminal at all).** Download one file, drag it onto your
+>   Applications folder, then click "Open Anyway" once. Simplest if you'd rather not type.
+> - **Option B — Build it yourself** from the source code (also skips the warning; a few more
+>   steps).
 
 ### Before you start — what you need (prerequisites)
 
@@ -105,6 +108,34 @@ Application Support. Every launch after that just opens that engine, locked to
 - ✅ **About 5 minutes.**
 - ✅ That's all. You do **not** need to be a coder, and you do **not** need to install
   anything extra — everything the app needs is already built into your Mac.
+
+---
+
+## ⚡ One-line install (fastest — no pop-ups)
+
+If you're comfortable pasting **one line** into the Terminal, this is the smoothest way:
+it downloads the app, installs it into Applications, and **you get no "could not verify"
+warning at all.**
+
+1. Open the **Terminal** app: press **`Command (⌘)`**+**`Spacebar`**, type **`Terminal`**,
+   press **`Return`**.
+2. Copy-paste this **one line**, then press **`Return`**:
+
+   ```bash
+   curl -fL https://github.com/fiehrfly/ytmusic-app/releases/latest/download/YouTube-Music-macOS.dmg -o /tmp/ytm.dmg && hdiutil attach /tmp/ytm.dmg -nobrowse -quiet && rm -rf "/Applications/YouTube Music.app" && cp -R "/Volumes/YouTube Music/YouTube Music.app" /Applications/ && hdiutil detach "/Volumes/YouTube Music" -quiet && xattr -dr com.apple.quarantine "/Applications/YouTube Music.app"; rm -f /tmp/ytm.dmg; open "/Applications/YouTube Music.app"
+   ```
+
+That's it — **YouTube Music installs and opens, with no Gatekeeper pop-up.** The first
+launch takes ~30–60 seconds to set itself up (needs internet once), then opens instantly.
+Sign in once and it remembers you.
+
+> **Why no warning?** macOS only shows the "could not verify… free of malware" screen for
+> apps carrying a *"downloaded from the internet"* quarantine flag, and **only web browsers
+> add that flag** — files fetched with `curl` don't get it. So this path sidesteps the prompt
+> instead of clicking through it. (Same reason building from source, Option B, has no prompt.)
+>
+> Don't want to touch the Terminal at all? Use **Option A** below — drag-to-install, then one
+> "Open Anyway" click.
 
 ---
 
@@ -260,6 +291,12 @@ Make the same drag-to-install disk image (.dmg) that the Releases page uses:
 
 ### Quick version (for people comfortable with the Terminal)
 
+**Fastest — install the latest release in one line (no Gatekeeper prompt):**
+```
+curl -fL https://github.com/fiehrfly/ytmusic-app/releases/latest/download/YouTube-Music-macOS.dmg -o /tmp/ytm.dmg && hdiutil attach /tmp/ytm.dmg -nobrowse -quiet && rm -rf "/Applications/YouTube Music.app" && cp -R "/Volumes/YouTube Music/YouTube Music.app" /Applications/ && hdiutil detach "/Volumes/YouTube Music" -quiet && xattr -dr com.apple.quarantine "/Applications/YouTube Music.app"; rm -f /tmp/ytm.dmg; open "/Applications/YouTube Music.app"
+```
+
+**Or build from source:**
 ```
 git clone https://github.com/fiehrfly/ytmusic-app.git
 cd ytmusic-app
